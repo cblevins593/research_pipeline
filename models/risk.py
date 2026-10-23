@@ -3,9 +3,9 @@ import numpy as np
 
 
 class risk_model:
-    def __init__(self,risk_factors,suffix):
+    def __init__(self,risk_factors,suffix=" Factor Return"):
         self.risk_factors=risk_factors
-        self.risk_factor_return_cols=factor_ret_cols=[x+ret_suffix for x in risk_factors]
+        self.risk_factor_return_cols=factor_ret_cols=[x+suffix for x in risk_factors]
         self.risk_df=None
         self.factor_covariance=None
         self.residual_var=None
@@ -42,7 +42,7 @@ class risk_model:
     def port_factor_variance(self):
         factor_variance={}
         factor_exposures=self.port_factor_exposure()
-        for factor in risk_factors:
+        for factor in self.risk_factors:
             factor_cov=self.factor_covariance[factor]
             factor_beta=factor_exposures[factor]
             risk_contribution=(factor_exposures*factor_cov*factor_beta).sum()
