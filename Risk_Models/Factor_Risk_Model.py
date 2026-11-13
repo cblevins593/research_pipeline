@@ -7,16 +7,30 @@ from .Risk_Utils import fundamental_factor_exposures, factor_returns, factor_cov
 class risk():
     def __init__(self,
                  fundamental_factor_model:bool = False,
+                 pca_factor_model:bool = False,
                  ledoit_wolf:bool = False, 
-                 identity_covariance: bool= False,
-                 factor_ewma_halflife: float|int=float('inf')
+                 ewma_halflife: float|int=float('inf'),
+                 
                 ):
+        # Initialize the factor model parameters
         self.fundamental_factor_model=fundamental_factor_model
-        self.ledoit_wolf=ledoit_wolf
-        self.identity_covariance=identity_covariance
-        self.factor_ewma_halflife=factor_ewma_halflife
+        self.pca_factor_model=pca_factor_model
+        if fundamental_factor_model and pca_factor_model:
+            raise ValueError("Cannot use both fundamental factor model and PCA factor model at the same time.")
+        if fundamental_factor_model or pca_factor_model:
+            self.identity_covariance=True
+            self.factor_model=True
+        else:
+            self.identity_covariance=False
+            self.factor_model=False
 
-        
+        # Initialize the Shrinkage method parameters
+        self.ledoit_wolf=ledoit_wolf
+
+        # Initialize the dyanamic covariance estimation parameters
+        self.ewma_halflife=ewma_halflife
+
+        # Initialize the risk model attributes
         self.factor_covariance=None
         self.residual_covariance=None
         self.risk_factors=None
@@ -24,10 +38,16 @@ class risk():
         
     def run_model(self,historical_data:pd.DataFrame) -> None: 
 
-        if self.fundamental_factor_model:
-            factor_df,factors=fundamental_factor_exposures(historical_data)
+        if self.factor_model:
+            if self.fundamental_factor_model:
+                factor_df,factors=fundamental_factor_exposures(historical_data)
+            elif self.pca_factor_model:
+                raise NotImplementedError("PCA factor model is not implemented yet.")
+            else:
+                raise ValueError("Invalid factor risk model type. Choose either fundamental_factor_model or pca_factor_model.")
+            
             factor_df,factor_returns_map=factor_returns(factor_df,factors)
-            factor_cov=factor_covariance(factor_df, factor_returns_map, halflife=self.factor_ewma_halflife)
+            factor_cov=factor_covariance(factor_df, factor_returns_map, halflife=self.ewma_halflife)
         else: 
             factor_returns_map=None
             factor_cov=None
@@ -40,30 +60,26 @@ class risk():
         self.residual_covariance=residual_cov
 
     
-    def expected_portfolio_variance(self,current_data: pd.DataFrame, portfolio: pd.DataFrame) -> float:
+    def expected_portfolio_variance(self,current_data: pd.DataFrame, portfolio: pd.DataFrame) -> tuple[float,float]:
        
-        if self.fundamental_factor_model:
+       
+        if self.factor_model:
+            if self.factor_covariance is None or self.residual_covariance is None:
+                raise ValueError("Model has no covariance matrices. Please run the model on historical data first.")
             current_factor_df,factors=fundamental_factor_exposures(current_data)
             portfolio_exposures=portfolio_factor_exposure(current_factor_df,factors,portfolio)
             systematic_variance=expected_factor_variance(portfolio_exposures,factors,self.factor_covariance)
         else:
             systematic_variance=float(0)
+
+        if self.residual_covariance is None:
+                    raise ValueError("Model has no residualcovariance matrix. Please run the model on historical data first.")
+        
         specific_variance=expected_specific_variance(portfolio,self.residual_covariance)
 
         return systematic_variance,specific_variance
 
     
-    def expected_portfolio_variance(self,current_data: pd.DataFrame, portfolio: pd.DataFrame) -> float:
-       
-        if self.fundamental_factor_model:
-            current_factor_df,factors=fundamental_factor_exposures(current_data)
-            portfolio_exposures=portfolio_factor_exposure(current_factor_df,factors,portfolio)
-            systematic_variance=expected_factor_variance(portfolio_exposures,factors,self.factor_covariance)
-        else:
-            systematic_variance=float(0)
-        specific_variance=expected_specific_variance(portfolio,self.residual_covariance)
-
-        return systematic_variance,specific_variance
 
 
     def realized_systematic_return(self,current_data: pd.DataFrame, portfolio: pd.DataFrame) -> float:

@@ -119,8 +119,8 @@ def portfolio_factor_exposure(current_factor_data: pd.DataFrame,factors:list[str
 def expected_factor_variance(factor_exposures:pd.Series,factors:list[str],factor_covariance:pd.DataFrame) -> float:
     
     factors=factor_exposures.index.tolist()
-    factor_covariance=np.array(factor_covariance.loc[factors,factors])
-    tot_var=factor_exposures@factor_covariance@factor_exposures
+    factor_covariance_array=np.array(factor_covariance.loc[factors,factors])
+    tot_var=factor_exposures@factor_covariance_array@factor_exposures
 
     return float(tot_var)
     
