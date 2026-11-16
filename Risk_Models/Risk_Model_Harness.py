@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from .Factor_Risk_Model import risk
 
 def run_multiple_risk_models(models_dict,historical_data):
         for model in models_dict:
@@ -76,7 +77,7 @@ class multiple_model_tracker():
         volatility_expectations=np.sqrt(variance_expectations)
         actual_returns=pd.DataFrame(self.excess_returns)
         standardized_returns=actual_returns/volatility_expectations
-        return standardized_returns
+        return pd.DataFrame(standardized_returns)
         
     def systematic_standardized_returns(self,model:str) -> pd.DataFrame:
         variance_expectations=pd.DataFrame(self.systematic_variance_estimates[model])
@@ -84,7 +85,7 @@ class multiple_model_tracker():
         
         actual_returns=pd.DataFrame(self.realized_systematic_returns[model])
         standardized_returns=actual_returns/volatility_expectations
-        return standardized_returns
+        return pd.DataFrame(standardized_returns)
 
     def excess_kurtosis(self,data):
         n = len(data)
