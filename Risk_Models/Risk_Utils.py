@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.covariance import LedoitWolf
+from .Covariance_Util import create_covariance_matrix
 
 #Fundamental factor model----------------------------------------------------------------------------
 def fundamental_factor_exposures(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
@@ -56,22 +57,18 @@ def factor_returns(df: pd.DataFrame, factors: list[str]) -> tuple[pd.DataFrame, 
     return factor_df, factor_returns_map
 
 
-def factor_covariance(factor_df: pd.DataFrame, factor_returns_map: dict[str,str],halflife:int|float=float('inf')) -> pd.DataFrame:
-        factors=factor_returns_map.keys()
+def factor_covariance(factor_df: pd.DataFrame, factor_returns_map: dict[str,str],ledoit_wolf: bool = False, halflife:int|float=float('inf')) -> pd.DataFrame:
+        factors=list(factor_returns_map.keys())
         factor_return_cols=[factor_returns_map[factor] for factor in factors]
-    
-        collapsed_df = (factor_df.groupby("Date")[factor_return_cols].first())
-        demeaned_returns=collapsed_df-collapsed_df.mean().to_numpy()
 
+        factor_return_df = (factor_df.groupby("Date")[factor_return_cols].first())
         
-        decay=.5**(1/halflife)
-        
-        periods_past=np.arange(len(demeaned_returns))[::-1]
-        exponential_weights = decay ** periods_past
-        covariance_matrix =  (exponential_weights * demeaned_returns.T) @ demeaned_returns / exponential_weights.sum()
+        factor_return_df = factor_return_df.fillna(factor_return_df.mean())
+        covariance_matrix=create_covariance_matrix(factor_return_df, ledoit_wolf=ledoit_wolf, ewma_halflife=halflife, identity_only=False)
+
         covariance_matrix.index=factors
         covariance_matrix.columns=factors
-        
+
         return covariance_matrix
 #------------------------------------------------------------------------------------------------------------------------
 # Specific variance model functions------------------------------------------------------------------------------------------------
@@ -87,21 +84,12 @@ def residual_returns(df: pd.DataFrame, factor_return_map: dict[str,str] | None =
     
     return df, residual_column
 
-def residual_covariance(residual_returns:pd.DataFrame,residual_column: str, ledoit_wolf: bool = False,identity_only: bool = False) -> pd.DataFrame:
+def residual_covariance(residual_returns:pd.DataFrame,residual_column: str, ledoit_wolf: bool = False,identity_only: bool = False,halflife:int|float=float('inf')) -> pd.DataFrame:
     returns_wide = residual_returns.pivot(index="Date",columns="Ticker",values=residual_column)
-    returns_wide=returns_wide.fillna(0)
-    if ledoit_wolf:
-        tickers=returns_wide.columns
-        lw = LedoitWolf(assume_centered=False)
-        lw.fit(returns_wide.fillna(0))
-        covariance_matrix = lw.covariance_
-        covariance_matrix=pd.DataFrame(covariance_matrix,index=tickers,columns=tickers)
-    else:
-        covariance_matrix=returns_wide.cov(min_periods=10)
-        
-    if identity_only:
-        diagonal_array=np.diag(np.diag(covariance_matrix))
-        covariance_matrix=pd.DataFrame(diagonal_array, index=covariance_matrix.index, columns=covariance_matrix.columns)
+
+    returns_wide = returns_wide.fillna(returns_wide.mean())
+    covariance_matrix=create_covariance_matrix(returns_wide, ledoit_wolf=ledoit_wolf, ewma_halflife=halflife, identity_only=identity_only)
+
     return covariance_matrix
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -125,9 +113,9 @@ def expected_factor_variance(factor_exposures:pd.Series,factors:list[str],factor
     return float(tot_var)
     
 
-def expected_specific_variance(portfolio: pd.DataFrame, residual_covariance: pd.DataFrame) -> float:
+def expected_specific_variance(portfolio: pd.DataFrame, residual_covariance_df: pd.DataFrame) -> float:
     tickers=portfolio["Ticker"]
-    aligned_covariance=np.array(residual_covariance.loc[tickers,tickers])
+    aligned_covariance=np.array(residual_covariance_df.loc[tickers,tickers])
     specific_variance=portfolio["Weight"]@aligned_covariance@portfolio["Weight"]
     return float(specific_variance)
 
