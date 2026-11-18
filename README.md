@@ -4,9 +4,9 @@
 This project compares multiple methods for risk modeling, alpha modeling, and portfolio optimization.<br> 
 The end result is a well documented defensible quantitative research pipeline.
 <br><br>
-The data used is a monthly panel of point in time data of S&P 500 constituents as of the date they appear in the panel.<br>
-The source for this data is Bloomberg.
-<br><br>
+<ins> Data </ins>
+* Sourced from Bloomberg
+* Monthly Point-in-Time panel of S&P 500 constituents as of the date they appear in the index
 
 
 ## Risk Modeling
