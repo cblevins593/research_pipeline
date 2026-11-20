@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from .Factor_Risk_Model import risk
+from ..Factor_Risk_Model import risk
 
 def run_multiple_risk_models(models_dict,historical_data):
         for model in models_dict:
