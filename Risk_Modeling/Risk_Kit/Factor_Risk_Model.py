@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from .Risk_Utils import fundamental_factor_exposures, factor_returns, factor_covariance, residual_returns, residual_covariance, portfolio_factor_exposure, expected_factor_variance,expected_specific_variance
+from .Risk_Kit_Utils.Risk_Utils import fundamental_factor_exposures, factor_returns, factor_covariance, residual_returns, residual_covariance, portfolio_factor_exposure, expected_factor_variance,expected_specific_variance
 
 
 
