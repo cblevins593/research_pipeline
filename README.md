@@ -29,6 +29,7 @@ This section compares the following methods of forecasting next month returns.
 See [Alpha_Models](Alpha_Models/) for more information.
 ## Portfolio Optimization
 This section compares the following portfolio optimization methods given calibrated expected returns and variance estimates.
+* Equal weight 
 * Minimize expected variance
 * Minimize expected variance subject to a minimum expected return constraint
 * Maximize expected return
