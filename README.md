@@ -13,7 +13,7 @@ The end result is a well documented defensible quantitative research pipeline.
 This section explores the following methods for forecasting portfolio variance.
 * Sample covariance estimation
 * Fundamental factor risk model
-* PCA factor risk model
+* PCA factor risk model - Marchenko-Pastur denoising
 * Ledoit-Wolf shrinkage
 * Exponentially Weighted Moving Average (EWMA)
 

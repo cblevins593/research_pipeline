@@ -33,6 +33,12 @@ def fundamental_factor_exposures(df: pd.DataFrame) -> tuple[pd.DataFrame, list[s
     return factor_df,factors
 
 
+def pca_factor_exposures(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    pass
+    return pd.DataFrame(),["hi"]
+    
+
+
 def factor_returns(df: pd.DataFrame, factors: list[str]) -> tuple[pd.DataFrame, dict[str,str]]:
     ret_suffix=" Factor Return"
     factor_returns={key+ret_suffix:[] for key in factors}
