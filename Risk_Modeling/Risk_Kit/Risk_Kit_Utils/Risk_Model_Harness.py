@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from ..Factor_Risk_Model import risk
+from scipy import stats
 
 def run_multiple_risk_models(models_dict:dict[str,risk],historical_data:pd.DataFrame)->dict[str,risk]:
     """
@@ -107,12 +108,12 @@ class multiple_model_tracker():
         systematic_variance_dict={}
         for model in models_dict:
             systematic_variance,residual_variance=models_dict[model].expected_portfolio_variance(current_data,portfolio)
-            total_variance=systematic_variance+residual_variance
-            self.append_expected_variance(date,model,total_variance,systematic_variance)
-            # systematic_variance_dict[model]=systematic_variance
-            # variance_dict[model]=systematic_variance+residual_variance
-        # for model in variance_dict:
-        #     self.append_expected_variance(date,model,variance_dict[model],systematic_variance_dict[model]) 
+            # total_variance=systematic_variance+residual_variance
+            # self.append_expected_variance(date,model,total_variance,systematic_variance)
+            systematic_variance_dict[model]=systematic_variance
+            variance_dict[model]=systematic_variance+residual_variance
+        for model in variance_dict:
+            self.append_expected_variance(date,model,variance_dict[model],systematic_variance_dict[model]) 
 
     def append_multiple_realized_systematic_returns(self,date:pd.Timestamp,models_dict:dict[str,risk],current_data:pd.DataFrame,portfolio:pd.DataFrame)->None:
         for model in models_dict:
@@ -151,11 +152,11 @@ class multiple_model_tracker():
         
     def performance_summary(self,models_dict:dict[str,risk]) -> pd.DataFrame:
         results={}
-
         results["Mean Z"]={model:self.standardized_returns(model).mean().mean() for model in models_dict}
         results["Standard Deviation Z"]={model:self.standardized_returns(model).mean().std() for model in models_dict} 
         results["Mean Z Squared"]={model:(self.standardized_returns(model)**2).mean().mean() for model in models_dict}
-        results["Z Excess Kurtosis"]={model:self.excess_kurtosis(self.standardized_returns(model).mean()) for model in models_dict}
+        results["Kurtosis"]={model:self.excess_kurtosis(self.standardized_returns(model).mean()) for model in models_dict}
+        results["Normality P-Value"]={model:stats.shapiro(self.standardized_returns(model).mean())[1] for model in models_dict} 
         # results["Mean Systematic Z"]={model:self.systematic_standardized_returns(model).mean().mean() for model in models_dict} 
         # results["Mean Systematic Z Squared"]={model:(self.systematic_standardized_returns(model)**2).mean().mean() for model in models_dict}
         return pd.DataFrame(results)

@@ -6,6 +6,35 @@ from .Covariance_Util import create_covariance_matrix
 
 #Fundamental factor model----------------------------------------------------------------------------
 def fundamental_factor_exposures(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """
+    Turns raw characteristics into standardized factor exposures.<br>
+    Style factor exposures are Z scored<br>
+    Industry exposures are binary (1 or 0)
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        A DataFrame containing raw company characteristics as columns, 
+        with each row representing a stock-period observation.
+
+    Returns
+    ----------
+    factor_df : pd.DataFrame
+        DataFrame containing fundamental factor exposures, Date, Ticker, and PCT_Return as columns
+        with each row representing a stock-period observation
+
+    factors : list[str]
+        A list of fundamental factors that are included in factor_df
+
+    Notes
+    -------
+    Fundamental Style Factors are Hard Coded as follows<br>
+    Value - Market-to-book<br>
+    Quality - ROIC<br>
+    Momentum - 12-1 Month Momentum<br>
+    Size - market cap
+
+    """
     z_factor_chars=["ROIC","market cap","Market-to-book","12-1 Month Momentum","Market Beta 1 Year"]
     industry_char="Sector"
     alignment_keys=["Date","Ticker"]
@@ -29,15 +58,61 @@ def fundamental_factor_exposures(df: pd.DataFrame) -> tuple[pd.DataFrame, list[s
     
     factor_df[industry_codes_str]=industry_exposures
     factors = [col for col in factor_df.columns if col not in alignment_keys+target_keys]
-               
     return factor_df,factors
 
 
-def pca_factor_exposures(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
-    pass
-    return pd.DataFrame(),["hi"]
-    
+def pca_factor_exposures(df: pd.DataFrame,K=5) -> tuple[pd.DataFrame, list[str],pd.DataFrame]:
+    """
+    Turns raw historical returns into statistical factor exposures.<br>
 
+    Parameters
+    ----------
+    df : pd.DataFrame
+        A DataFrame containing PCT_Return column, 
+        with each row representing a stock-period observation.
+
+    Returns
+    ----------
+    factor_df : pd.DataFrame
+        DataFrame containing statistical factor exposures, Date, Ticker, and PCT_Return as columns
+        with each row representing a stock-period observation
+
+    exposure_df : pd.DataFrame
+        A DataFrame containing static statistical factor exposures.
+        Each row is a Ticker.
+
+    factors : list[str]
+        A list of statistical factors that are included in factor_df
+
+    Notes
+    -------
+    Number of PCA components is currently hard coded to 5
+
+    """
+    alignment_keys=["Date","Ticker"]
+    target_keys=["PCT_Return"]
+
+    wide_df=df.pivot(columns="Ticker",index="Date",values="PCT_Return") 
+    T,N=wide_df.shape
+
+    demeaned_df = wide_df.fillna(wide_df.mean())
+    covariance_matrix=create_covariance_matrix(demeaned_df,identity_only=False)
+
+    eigenvalues, eigenvectors=np.linalg.eigh(covariance_matrix)
+    idx = np.argsort(eigenvalues)[::-1] # Sort components by descending
+    eigenvalues = eigenvalues[idx]
+    eigenvectors = eigenvectors[:, idx]
+    eigenvectors=eigenvectors[:K]
+
+    exposure_df = pd.DataFrame(eigenvectors.T,index=wide_df.columns,columns=[f"PC_{i+1}" for i in range(K)])
+    
+    factor_df=df[alignment_keys+target_keys]
+    factor_df=factor_df.merge(exposure_df,how="left",on="Ticker")
+
+    factors=list(exposure_df.columns)
+
+    return factor_df,factors,exposure_df
+    
 
 def factor_returns(df: pd.DataFrame, factors: list[str]) -> tuple[pd.DataFrame, dict[str,str]]:
     ret_suffix=" Factor Return"
@@ -47,6 +122,7 @@ def factor_returns(df: pd.DataFrame, factors: list[str]) -> tuple[pd.DataFrame, 
     all_dates=df["Date"].unique()
     for date in all_dates:
         train_data=df[df["Date"]==date].dropna()
+
         
         X=train_data[factors]
         Y=train_data["PCT_Return"]
