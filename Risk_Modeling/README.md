@@ -16,9 +16,22 @@ Do portfolio variance estimation methods outperform a basic covariance matrix in
 ### Methods
 <u>**Factor Models**</u>
 
-*Fundamental Factor Model* -
+*Fundamental Factor Model*:<br> 
+Uses predefined factors such as value, momentum, quality, size, and industry to explain co-movement between different tickers.<br>
+| Pros | Cons |
+|:---|:---|
+| Economically interpretable factors | Potential omitted factors |
+| Stable, predefined factor definitions | Results depend on how factors are constructed |
+| Intuitive portfolio risk attribution | Multicollinearity between characteristics |
+| Supports factor exposure constraints |  |
 
-*PCA Factor Model* -
+*PCA Factor Model*:<br>
+Statistical factor model that extracts latent risk factors from historical returns to explain co-movement between different tickers
+| Pros | Cons |
+|:---|:---|
+| Captures sources of risk not specified by the modeler | Factors lack economic interpretations |
+| Factors are mathematically orthogonal | Factors are sensitive to the estimation window |
+| Factors are selected by magnitude of historical variance | The modeler must determine significant components |
 
 <u>**Shrinkage**</u>
 
