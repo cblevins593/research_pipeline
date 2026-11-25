@@ -16,6 +16,14 @@ Point-in-Time monthly panel tracking the S&P 500 universe retrieved from Bloombe
 
 ### *Fundamental Factor Model*:<br> 
 Predefined factors such as value, momentum, quality, size, and industry are used to explain co-movement between different tickers.<br>
+Portfolio factor exposures vector is defined as (B) and fundamental factor covariance matrix as (F).<br> 
+Residual covariance is reduced to an identity matrix (D) since the factor covariance is assumed to account for all ticker covariance.
+Portfolio variance is calculated as follows:
+
+$$
+\Sigma = BFB^T + D
+$$
+
 | Strengths | Limitations |
 |:---|:---|
 | Reduces required covariance estimations | Potential for omitted factors |
