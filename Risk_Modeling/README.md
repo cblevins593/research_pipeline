@@ -1,47 +1,55 @@
 # Research On Various Models For Forecasting Portfolio Volatility
+
 ## Overview
-This project compares alternative methodologies for forecasting equity portfolio variance in a monthly panel tracking the S&P 500 universe. 
-
-The most basic variance estimate is derived from a covariance matrix formed on historical returns. This method is inherently noisy due to the shear volume of relationships to be estimated and the dynamic nature of financial markets.
-
-A 500x500 covariance matrix needs to estimate 500*(500+1)/2 or 125,250 relationships. In a monthly panel with a 5 year estimation period, the covariances are estimated on only 60 observations. In such a small sample, certain assets may appear coorelated by pure chance.
-
-The second limitation of the basic covariance matrix is that it treats all observations with equal weight. This may be problematic due to the dynamic nature of the equity market. Stocks that exhibited co-movement 5 years ago may no longer show the same relationship.
-
-The methods discussed below attempt to provide more accurate variance estimates by simplifying the covariance matrix and taking into account the dynamic nature of the market to provide more stable out of sample predictions.
 
 ### Research Question
-Do portfolio variance estimation methods outperform a basic covariance matrix in forecasting out of sample variance of a diversified portfolio.
+Can a hybrid equity risk model combining fundamental factor exposures, statistical covariance estimation, Ledoit-Wolf shrinkage, and exponentially weighted moving averages (EWMA) improve out-of-sample portfolio risk forecasting accuracy compared to traditional standalone approaches
 
-### Methods
-<u>**Factor Models**</u>
+### Hypothesis
+A hybrid risk model that combines fundamental or statistical factor structure, Ledoit-Wolf shrinkage, and EWMA weighting will produce more accurate and stable out-of-sample portfolio risk forecasts than models relying on any single methodology.
 
-*Fundamental Factor Model*:<br> 
-Uses predefined factors such as value, momentum, quality, size, and industry to explain co-movement between different tickers.<br>
-| Pros | Cons |
+### Data 
+Point-in-Time monthly panel tracking the S&P 500 universe retrieved from Bloomberg via BQL
+
+
+## Methods
+
+### *Fundamental Factor Model*:<br> 
+Predefined factors such as value, momentum, quality, size, and industry are used to explain co-movement between different tickers.<br>
+| Strengths | Limitations |
 |:---|:---|
-| Economically interpretable factors | Potential omitted factors |
-| Stable, predefined factor definitions | Results depend on how factors are constructed |
-| Intuitive portfolio risk attribution | Multicollinearity between characteristics |
-| Supports factor exposure constraints |  |
+| Reduces required covariance estimations | Potential for omitted factors |
+| Economically interpretable factors | Results depend on factor construction |
+| Stable, predefined factor definitions | May contain multicollinearity between factors |
+| Intuitive portfolio risk attribution and exposure constraints |  |
 
-*PCA Factor Model*:<br>
+### *PCA Factor Model*:<br>
 Statistical factor model that extracts latent risk factors from historical returns to explain co-movement between different tickers
-| Pros | Cons |
+| Strengths | Limitations |
 |:---|:---|
-| Captures sources of risk not specified by the modeler | Factors lack economic interpretations |
-| Factors are mathematically orthogonal | Factors are sensitive to the estimation window |
-| Factors are selected by magnitude of historical variance | The modeler must determine significant components |
+| Reduces required covariance estimations | Factors lack economic interpretations |
+| Captures sources of risk not specified by the modeler | The number of factors requires parameter tuning |
+| Factors have no multicollinearity  | Factor definitions may be unstable |
+| Factors are selected by magnitude of historical variance |  |
 
-<u>**Shrinkage**</u>
+### *Ledoit-Wolf Covariance Shrinkage*:
+Shrinks sample covariance matrix (S) towards a structured target (F) e.g., the diagonal covariance matrix using the following:
 
-*Ledoit-Wolf Covariance Shrinkage* -
+$$
+\hat{\Sigma}_{LW} = (1-\delta)S + \delta F
+$$
 
-<u>**Dynamic Adjustment**</u>
+| Strengths | Limitations |
+|:---|:---|
+| Reduces noise in covariance estimations | Can distort meaningful covariance structure |
+| Systematically selects optimal shrinkage intensity |  |
 
-*Exponential Weighting* -
-
-### Experiment
+### *Exponential Weighting*:
+| Strengths | Limitations |
+|:---|:---|
+|  |  |
+|  |  |
+## Experimental Design
 Combinations of the three methods discussed above will be tested on randomized long only portfolios. Performance will be analyzed to determine if one or more combination provides superior out of sample variance forecasts.
 
 
