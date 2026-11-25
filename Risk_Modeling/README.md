@@ -20,12 +20,11 @@ Portfolio factor exposures vector is defined as (B) and fundamental factor covar
 Residual covariance is reduced to an identity matrix (D) since the factor covariance is assumed to account for all ticker covariance.
 Portfolio variance is calculated as follows:
 
-$\Sigma = BFB^T + D$
 
 $$
 \Sigma = BFB^T + D
-$$<br>
-
+$$
+<br>
 
 | Strengths | Limitations |
 |:---|:---|
