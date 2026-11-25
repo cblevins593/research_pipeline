@@ -60,10 +60,16 @@ $$
 w_i=\frac{\lambda^{T-i}}{\sum_{j=1}^{T}\lambda^{T-j}}
 $$
 
+The weighted equivalent of the standard sample covariance Bessel correction $\frac{T}{(T-1)}$
+is a finite sample correction factor (S), defined as 
+
 
 $$
-\Sigma_t =
-\frac{1}{1-\sum_{i=1}^{T}w_i^2}
+S =\frac{1}{1-\sum_{i=1}^{T}w_i^2}
+$$
+
+$$
+\Sigma_t =S
 \sum_{i=1}^{T}w_i
 (x_i-\bar{x}_w)(x_i-\bar{x}_w)^T
 $$
